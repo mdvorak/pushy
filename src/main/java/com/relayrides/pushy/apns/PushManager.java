@@ -24,6 +24,7 @@ package com.relayrides.pushy.apns;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -95,6 +96,7 @@ public class PushManager<T extends ApnsPushNotification> implements ApnsConnecti
 
 	private final ApnsEnvironment environment;
 	private final SSLContext sslContext;
+	private final SocketAddress proxyAddress;
 
 	private final int concurrentConnectionCount;
 	private final int sentNotificationBufferCapacity;
@@ -150,6 +152,7 @@ public class PushManager<T extends ApnsPushNotification> implements ApnsConnecti
 	 *
 	 * @param environment the environment in which this {@code PushManager} operates
 	 * @param sslContext the SSL context in which APNs connections controlled by this {@code PushManager} will operate
+	 * @param proxyAddress address of the proxy server used to connect; {@code null} for direct connection
 	 * @param concurrentConnectionCount the number of parallel connections to maintain
 	 * @param eventLoopGroup the event loop group this push manager should use for its connections to the APNs gateway and
 	 * feedback service; if {@code null}, a new event loop group will be created and will be shut down automatically
@@ -164,6 +167,7 @@ public class PushManager<T extends ApnsPushNotification> implements ApnsConnecti
 	 * this push manager
 	 */
 	protected PushManager(final ApnsEnvironment environment, final SSLContext sslContext,
+			final SocketAddress proxyAddress,
 			final int concurrentConnectionCount, final NioEventLoopGroup eventLoopGroup,
 			final ExecutorService listenerExecutorService, final BlockingQueue<T> queue,
 			final int sentNotificationBufferCapacity) {
@@ -176,6 +180,7 @@ public class PushManager<T extends ApnsPushNotification> implements ApnsConnecti
 
 		this.environment = environment;
 		this.sslContext = sslContext;
+		this.proxyAddress = proxyAddress;
 
 		this.concurrentConnectionCount = concurrentConnectionCount;
 		this.sentNotificationBufferCapacity = sentNotificationBufferCapacity;
@@ -202,7 +207,7 @@ public class PushManager<T extends ApnsPushNotification> implements ApnsConnecti
 			this.shouldShutDownListenerExecutorService = true;
 		}
 
-		this.feedbackServiceClient = new FeedbackServiceClient(this.environment, this.sslContext, this.eventLoopGroup);
+		this.feedbackServiceClient = new FeedbackServiceClient(this.environment, this.sslContext, this.proxyAddress, this.eventLoopGroup);
 	}
 
 	/**
@@ -677,7 +682,7 @@ public class PushManager<T extends ApnsPushNotification> implements ApnsConnecti
 
 	private void startNewConnection() {
 		synchronized (this.activeConnections) {
-			final ApnsConnection<T> connection = new ApnsConnection<T>(this.environment, this.sslContext, this.eventLoopGroup, this.sentNotificationBufferCapacity, this);
+			final ApnsConnection<T> connection = new ApnsConnection<T>(this.environment, this.sslContext, proxyAddress, this.eventLoopGroup, this.sentNotificationBufferCapacity, this);
 			connection.connect();
 
 			this.activeConnections.add(connection);

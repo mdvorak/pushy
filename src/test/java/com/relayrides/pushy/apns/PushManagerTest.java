@@ -161,7 +161,7 @@ public class PushManagerTest extends BasePushyTest {
 		{
 			final PushManager<ApnsPushNotification> defaultGroupPushManager =
 					new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(),
-							1, null, null, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
+                            null, 1, null, null, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
 
 			defaultGroupPushManager.start();
 			defaultGroupPushManager.shutdown();
@@ -174,7 +174,7 @@ public class PushManagerTest extends BasePushyTest {
 
 			final PushManager<ApnsPushNotification> providedGroupPushManager =
 					new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(),
-							1, group, null, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
+                            null, 1, group, null, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
 
 			providedGroupPushManager.start();
 			providedGroupPushManager.shutdown();
@@ -190,7 +190,7 @@ public class PushManagerTest extends BasePushyTest {
 
 			final PushManager<ApnsPushNotification> providedExecutorServicePushManager =
 					new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(),
-							1, null, listenerExecutorService, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
+                            null, 1, null, listenerExecutorService, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
 
 			providedExecutorServicePushManager.start();
 			providedExecutorServicePushManager.shutdown();
@@ -234,7 +234,7 @@ public class PushManagerTest extends BasePushyTest {
 	@Test(expected = IllegalStateException.class)
 	public void testDoubleStart() throws Exception {
 		final PushManager<ApnsPushNotification> doubleStartPushManager =
-				new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), 1,
+				new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), null, 1,
 						null, null, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
 
 		doubleStartPushManager.start();
@@ -244,7 +244,7 @@ public class PushManagerTest extends BasePushyTest {
 	@Test(expected = IllegalStateException.class)
 	public void testPrematureShutdown() throws Exception {
 		final PushManager<ApnsPushNotification> prematureShutdownPushManager =
-				new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), 1,
+				new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), null, 1,
 						null, null, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
 
 		prematureShutdownPushManager.shutdown();
@@ -253,7 +253,7 @@ public class PushManagerTest extends BasePushyTest {
 	@Test
 	public void testRepeatedShutdown() throws Exception {
 		final PushManager<ApnsPushNotification> repeatedShutdownPushManager =
-				new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), 1,
+				new PushManager<ApnsPushNotification>(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), null, 1,
 						null, null, null, ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
 
 		repeatedShutdownPushManager.start();
@@ -420,7 +420,7 @@ public class PushManagerTest extends BasePushyTest {
 					BlockingQueue<SimpleApnsPushNotification> queue,
 					CountDownLatch latch) {
 
-				super(environment, sslContext, concurrentConnectionCount, eventLoopGroup, null, queue,
+				super(environment, sslContext, null, concurrentConnectionCount, eventLoopGroup, null, queue,
 						ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY);
 
 				this.latch = latch;

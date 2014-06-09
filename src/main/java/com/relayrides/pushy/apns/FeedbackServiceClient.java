@@ -38,6 +38,7 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.Future;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -77,6 +78,7 @@ class FeedbackServiceClient {
 
 	private final ApnsEnvironment environment;
 	private final SSLContext sslContext;
+	private final SocketAddress proxyAddress;
 	private final NioEventLoopGroup eventLoopGroup;
 
 	private final Vector<ExpiredToken> expiredTokens;
@@ -162,9 +164,13 @@ class FeedbackServiceClient {
 	 * communicating with the APNs feedback service
 	 * @param eventLoopGroup the event loop group this client should use for asynchronous network operations
 	 */
-	public FeedbackServiceClient(final ApnsEnvironment environment, final SSLContext sslContext, final NioEventLoopGroup eventLoopGroup) {
+	public FeedbackServiceClient(final ApnsEnvironment environment,
+				     final SSLContext sslContext,
+				     final SocketAddress proxyAddress,
+				     final NioEventLoopGroup eventLoopGroup) {
 		this.environment = environment;
 		this.sslContext = sslContext;
+		this.proxyAddress = proxyAddress;
 		this.eventLoopGroup = eventLoopGroup;
 
 		this.expiredTokens = new Vector<ExpiredToken>();
@@ -209,6 +215,12 @@ class FeedbackServiceClient {
 				pipeline.addLast("readTimeoutHandler", new ReadTimeoutHandler(timeout, timeoutUnit));
 				pipeline.addLast("decoder", new ExpiredTokenDecoder());
 				pipeline.addLast("handler", new FeedbackClientHandler(feedbackClient));
+
+				// Proxy must be registered last in the pipeline
+				if (proxyAddress != null) {
+					// Note: Use correct order
+					pipeline.addFirst("proxy", new ProxyHandler(proxyAddress));
+				}
 			}
 
 		});

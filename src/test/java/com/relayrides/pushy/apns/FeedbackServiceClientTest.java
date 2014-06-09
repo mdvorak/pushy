@@ -35,7 +35,7 @@ public class FeedbackServiceClientTest extends BasePushyTest {
 	@Test
 	public void testGetExpiredTokens() throws Exception {
 		final FeedbackServiceClient feedbackClient =
-				new FeedbackServiceClient(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), this.getEventLoopGroup());
+				new FeedbackServiceClient(TEST_ENVIRONMENT, SSLTestUtil.createSSLContextForTestClient(), null, this.getEventLoopGroup());
 
 		assertTrue(feedbackClient.getExpiredTokens(1, TimeUnit.SECONDS).isEmpty());
 

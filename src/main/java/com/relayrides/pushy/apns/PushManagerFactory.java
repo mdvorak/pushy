@@ -26,6 +26,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketAddress;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -55,6 +56,7 @@ public class PushManagerFactory<T extends ApnsPushNotification> {
 
 	private final ApnsEnvironment environment;
 	private final SSLContext sslContext;
+	private SocketAddress proxyAddress;
 
 	private int concurrentConnectionCount = 1;
 	private int sentNotificationBufferCapacity = ApnsConnection.DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY;
@@ -102,6 +104,17 @@ public class PushManagerFactory<T extends ApnsPushNotification> {
 	}
 
 	/**
+	 * <p>Sets address of HTTP proxy, used to connect to APNs gateway. By default, none is used.</p>
+	 *
+	 * @param proxyAddress address of the proxy server used to connect; {@code null} for direct connection
+	 * @return a reference to this factory for ease of chaining configuration calls
+	 */
+	public PushManagerFactory<T> setProxyAddress(final SocketAddress proxyAddress) {
+		this.proxyAddress = proxyAddress;
+		return this;
+	}
+
+	/**
 	 * <p>Sets a custom event loop group to be used by constructed {@code PushMangers}. If {@code null}, constructed
 	 * {@code PushManagers} will be create and maintain their own event loop groups. If a non-{@code null} event loop
 	 * group is provided, callers <strong>must</strong> shut down the event loop group after shutting down all
@@ -125,13 +138,13 @@ public class PushManagerFactory<T extends ApnsPushNotification> {
 	 * registered listeners. If {@code null}, constructed {@code PushManager} instances will create and maintain their
 	 * own executor services. If a non-{@code null} executor service is provided, callers <strong>must</strong> shut
 	 * down the executor service after shutting down all {@code PushManager} instances that use that executor service.</p>
-	 * 
+	 *
 	 * <p>By default, constructed {@code PushManagers} will construct and maintain their own executor services.</p>
-	 * 
+	 *
 	 * @param listenerExecutorService the executor service to be used by constructed {@code PushManager} instances to
 	 * dispatch notifications to registered listeners; if not {@code null}, the caller <strong>must</strong> shut down
 	 * the executor service after shutting down all push managers that use the executor service
-	 * 
+	 *
 	 * @return a reference to this factory for ease of chaining configuration calls
 	 */
 	public PushManagerFactory<T> setListenerExecutorService(final ExecutorService listenerExecutorService) {
@@ -144,7 +157,7 @@ public class PushManagerFactory<T extends ApnsPushNotification> {
 	 * default), constructed push managers will construct their own queues.</p>
 	 *
 	 * @param queue the queue to be used to pass new notifications to constructed push managers
-	 * 
+	 *
 	 * @return a reference to this factory for ease of chaining configuration calls
 	 */
 	public PushManagerFactory<T> setQueue(final BlockingQueue<T> queue) {
@@ -157,10 +170,10 @@ public class PushManagerFactory<T extends ApnsPushNotification> {
 	 * default, the capacity of sent notification buffers is
 	 * {@value ApnsConnection#DEFAULT_SENT_NOTIFICATION_BUFFER_CAPACITY}; while sent notification buffers may have any
 	 * positive capacity, it is not recommended that they be given a capacity less than the default.
-	 * 
+	 *
 	 * @param sentNotificationBufferCapacity the capacity of sent notification buffers for connections created by
 	 * constructed push managers
-	 * 
+	 *
 	 * @return a reference to this factory for ease of chaining configuration calls
 	 */
 	public PushManagerFactory<T> setSentNotificationBufferCapacity(final int sentNotificationBufferCapacity) {
@@ -178,6 +191,7 @@ public class PushManagerFactory<T extends ApnsPushNotification> {
 		return new PushManager<T>(
 				this.environment,
 				this.sslContext,
+				this.proxyAddress,
 				this.concurrentConnectionCount,
 				this.eventLoopGroup,
 				this.listenerExecutorService,

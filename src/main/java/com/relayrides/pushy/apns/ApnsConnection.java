@@ -40,6 +40,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 
+import java.net.SocketAddress;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Date;
@@ -70,6 +71,7 @@ public class ApnsConnection<T extends ApnsPushNotification> {
 	private final SSLContext sslContext;
 	private final NioEventLoopGroup eventLoopGroup;
 	private final ApnsConnectionListener<T> listener;
+	private final SocketAddress proxyAddress;
 
 	private static final AtomicInteger connectionCounter = new AtomicInteger(0);
 	private final String name;
@@ -326,14 +328,16 @@ public class ApnsConnection<T extends ApnsPushNotification> {
 	 * @param environment the environment in which this connection will operate
 	 * @param sslContext an SSL context with the keys/certificates and trust managers this connection should use when
 	 * communicating with the APNs gateway
+	 * @param proxyAddress address of the proxy server used to connect; {@code null} for direct connection
 	 * @param eventLoopGroup the event loop group this connection should use for asynchronous network operations
 	 * @param sentNotificationBufferCapacity the capacity of this connection's sent notification buffer
 	 * @param listener the listener to which this connection will report lifecycle events; may be {@code null}
 	 */
-	public ApnsConnection(final ApnsEnvironment environment, final SSLContext sslContext, final NioEventLoopGroup eventLoopGroup, final int sentNotificationBufferCapacity, final ApnsConnectionListener<T> listener) {
+	public ApnsConnection(final ApnsEnvironment environment, final SSLContext sslContext, final SocketAddress proxyAddress, final NioEventLoopGroup eventLoopGroup, final int sentNotificationBufferCapacity, final ApnsConnectionListener<T> listener) {
 
 		this.environment = environment;
 		this.sslContext = sslContext;
+		this.proxyAddress = proxyAddress;
 		this.eventLoopGroup = eventLoopGroup;
 		this.listener = listener;
 
@@ -379,6 +383,11 @@ public class ApnsConnection<T extends ApnsPushNotification> {
 				pipeline.addLast("decoder", new RejectedNotificationDecoder());
 				pipeline.addLast("encoder", new ApnsPushNotificationEncoder());
 				pipeline.addLast("handler", new ApnsConnectionHandler(apnsConnection));
+
+				// Proxy must be registered as first in the pipeline
+				if (proxyAddress != null) {
+					pipeline.addFirst("proxy", new ProxyHandler(proxyAddress));
+				}
 			}
 		});
 
